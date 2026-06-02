@@ -1,141 +1,123 @@
-# nimbench
+# <p align="center"><pre align="center"><b><font color="#2ecc71">
+  _   _ ___ __  __ ____  _____ _   _  ____ _   _ 
+ | \ | |_ _|  \/  | __ )| ____| \ | |/ ___| | | |
+ |  \| || || |\/| |  _ \|  _| |  \| | |   | |_| |
+ | |\  || || |  | | |_) | |___| |\  | |___|  _  |
+ |_| \_|___|_|  |_|____/|_____|_| \_|\____|_| |_|
+</font></b></pre></p>
 
-`nimbench` is a small CLI for measuring response latency across NVIDIA NIM chat models.
+<p align="center">
+  <b>A lightweight, high-performance benchmarking tool for NVIDIA NIM LLMs.</b><br>
+  <i>Measure latency, throughput, and reliability with style.</i>
+</p>
 
-It does three things:
+---
 
-1. Fetches available models from `GET /v1/models`
-2. Selects likely chat-capable models by default
-3. Sends a tiny chat completion request to each candidate model
-4. Sorts results by fastest median response time
+## 🚀 Overview
 
-The app is intentionally lightweight. It uses only Python stdlib and writes progress logs while it runs.
+`nimbench` is a surgical CLI tool designed to benchmark NVIDIA NIM (NVIDIA Inference Microservices) chat models. It handles the heavy lifting of model discovery, intelligent filtering, and robust benchmarking, providing you with a clear, color-coded performance report.
 
-## What it measures
+## ✨ Key Features
 
-`nimbench` measures wall-clock request time for a minimal `POST /v1/chat/completions` call.
+- **🔍 Auto-Discovery**: Automatically finds and ranks all available models from your NVIDIA NIM endpoint.
+- **📊 Precise Metrics**: Measures Median, Min, Max latency and Tokens Per Second (TPS).
+- **⏱️ Progress & ETA**: Real-time progress tracking with percentage and estimated time remaining.
+- **🌈 Colorized CLI**: Beautiful, high-signal terminal output using green/yellow/red status indicators.
+- **🛡️ Intelligent Retries**: Automatically handles rate limits (429) by respecting `Retry-After` headers and applies temperature fallbacks when needed.
+- **📝 Failure Analysis**: Detailed breakdown of failure reasons (Not Provisioned, Timeout, Unsupported, etc.).
+- **💾 Skip Cache**: Remembers failed models to speed up subsequent runs.
 
-Default request shape:
+---
 
-- prompt: `Reply with one short word.`
-- `max_tokens: 8`
-- `temperature: 0`, with automatic fallback to `0.1` if a backend rejects zero temperature
+## 🔬 What it measures
 
-That makes the benchmark mostly about request/response latency, not output quality or throughput.
+`nimbench` measures wall-clock request time for a minimal `POST /v1/chat/completions` call. It is designed to evaluate **request/response latency** rather than long-form output quality.
 
-The CLI also reports tokens per second for each successful model. If NVIDIA returns per-request metrics, the server value is used. Otherwise the app derives an approximate rate from `completion_tokens / wall_time`.
+**Default Request Shape:**
+- **Prompt:** `Reply with one short word.`
+- **Max Tokens:** `8`
+- **Temperature:** `0.0` (with automatic fallback to `0.1` if rejected).
 
-## Install
+The CLI reports tokens per second for each model. It uses server-provided metrics when available, or derives an approximate rate from `completion_tokens / wall_time`.
+
+---
+
+## 🛠️ How it behaves
+
+- **Discovery**: Fetches all models from `GET /v1/models` and filters for likely chat-capable IDs.
+- **Sequential Execution**: Benchmarking is performed sequentially to preserve the **40 RPM** (Requests Per Minute) cap.
+- **Intelligent Skipping**: A local skip cache is maintained for models that are not provisioned, reject chat input, or repeatedly timeout.
+- **Cap Logic**: The `--limit` flag means "stop after N **successful** benchmarks", preventing your rate limit from being wasted on unavailable models.
+
+---
+
+## 📦 Installation
 
 Requires Python 3.10+.
 
 ```bash
-python3 -m pip install -e .
+git clone https://github.com/your-username/nimbench.git
+cd nimbench
+pip install -e .
 ```
 
-## Run
+## 🚀 Quick Start
 
-Set your NVIDIA API key in one of these ways:
-
-```bash
-nimbench --api-key nvapi-...
-```
-
-or:
-
-```bash
-export NVIDIA_API_KEY=nvapi-...
-nimbench
-```
-
-If no key is passed, the app prompts for one.
-
-Basic run:
-
+Benchmark the top 10 most likely chat models:
 ```bash
 python3 -m nimbench --limit 10
 ```
 
-Useful example:
-
+### Advanced Usage
 ```bash
-python3 -m nimbench \
-  --api-key nvapi-... \
-  --limit 10 \
-  --pattern 'llama|nemotron|gpt-oss|qwen|mistral'
+# Benchmark everything (including non-chat) with 3 repeats each
+python3 -m nimbench --all-models --repeats 3
+
+# Filter for specific models using regex
+python3 -m nimbench --pattern "llama|nemotron|mistral"
+
+# Export results to JSON
+python3 -m nimbench --limit 5 --json > results.json
 ```
 
-## How it behaves
+---
 
-- Models are discovered from `GET /v1/models`
-- Chat-like model ids are selected by default
-- `--all-models` restores full catalog benchmarking
-- Benchmarking is sequential
-- The tool enforces a fixed `40 rpm` request cap
-- The tool keeps a local skip cache for models that are not provisioned, reject chat input, or repeatedly time out
-- `--refresh-cache` ignores that cache for one run and rebuilds it from fresh results
-- Logs go to stderr
-- Final results go to stdout
+## ⚙️ Configuration & Options
 
-Important detail: `--limit` means "stop after N successful benchmarks", not "take the first N discovered rows". That avoids wasting the cap on models that are not available for chat completions.
+### API Key Precedence
+1. `--api-key` command-line argument.
+2. `NVIDIA_API_KEY` environment variable.
+3. Interactive prompt.
 
-## Options
+### Options
+| Option | Description |
+| :--- | :--- |
+| `--api-key KEY` | NVIDIA API key |
+| `--base-url URL` | API base URL (Default: `https://integrate.api.nvidia.com/v1`) |
+| `--limit N` | Stop after N successful benchmarks |
+| `--pattern REGEX` | Only consider model ids matching REGEX |
+| `--timeout SECONDS` | Request timeout for each HTTP call |
+| `--repeats N` | Requests per model |
+| `--json` | Emit JSON instead of a text table |
+| `--rpm N` | Request rate cap (Default: 40) |
+| `--all-models` | Benchmark full catalog instead of chat-only default |
+| `--refresh-cache` | Ignore the local skip cache for this run |
 
-```text
---api-key KEY      NVIDIA API key
---base-url URL     API base URL
---limit N          Stop after N successful benchmarks
---pattern REGEX    Only consider model ids matching REGEX
---timeout SECONDS  Request timeout for each HTTP call
---repeats N        Requests per model
---json             Emit JSON instead of a text table
---rpm N            Request rate cap, default 40
---concurrency N    Reserved. Benchmarking is sequential to preserve the cap.
---all-models       Benchmark full catalog instead of chat-only default
---refresh-cache    Ignore the local skip cache for this run
-```
+### Environment Variables
+- `NVIDIA_API_KEY`: Your NVIDIA API key.
+- `NIMBENCH_CACHE_DIR`: Set this to override the default local skip cache directory.
 
-Default base URL:
+---
 
-```text
-https://integrate.api.nvidia.com/v1
-```
+## 🧪 Testing
 
-## Output
-
-Text output contains:
-
-- selected / attempted / discovered counts
-- skipped non-chat and cached counts when applicable
-- sorted successful models with median, min, max latency
-- failed or unavailable models with error text
-
-Example shape:
-
-```text
-NIM bench: 10 candidate model(s), 14 attempted, 117 discovered at https://integrate.api.nvidia.com/v1
-
-rank  model                        median ms  min ms  max ms  tok/s  ok  err
-...
-```
-
-Use `--json` if you want machine-readable output.
-
-## Why some models fail
-
-The NVIDIA catalog can expose more than chat-capable LLMs. Some entries are embeddings, safety, vision, or other task-specific models. Those may not answer `POST /v1/chat/completions` and can return `404`, timeout, or similar errors.
-
-`nimbench` logs those as unavailable or failed and keeps going.
-
-Models that repeatedly fail for the same reason are written to a local skip cache under the user cache directory. Later runs skip those models before sending a request, which keeps the benchmark focused on models that are actually usable for this API key. Use `--refresh-cache` to ignore the cache for one run.
-Set `NIMBENCH_CACHE_DIR` if you want that cache in a different location.
-
-## Development
-
-Run tests:
-
+Run the comprehensive test suite:
 ```bash
-python3 -m unittest discover -s tests -v
+python3 -m unittest discover tests
 ```
 
-The package entrypoint is `nimbench`, and `python3 -m nimbench --help` shows the CLI help.
+---
+
+<p align="center">
+  Built with 💚 for the LLM community.
+</p>
