@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nimbench"
+version = "0.1.0"
+description = "Lightweight NVIDIA NIM latency benchmark CLI"
+requires-python = ">=3.10"
+
+[project.scripts]
+nimbench = "nimbench.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["nimbench*"]
