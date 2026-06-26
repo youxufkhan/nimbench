@@ -1,15 +1,58 @@
 [build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "nimbench"
-version = "0.1.0"
-description = "Lightweight NVIDIA NIM latency benchmark CLI"
+dynamic = ["version"]
+description = "A lightweight, high-performance benchmarking tool for NVIDIA NIM LLMs"
+readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Benchmark",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "httpx>=0.24.0",
+    "rich>=13.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-username/nimbench"
+Repository = "https://github.com/your-username/nimbench"
+Issues = "https://github.com/your-username/nimbench/issues"
 
 [project.scripts]
 nimbench = "nimbench.cli:main"
 
-[tool.setuptools.packages.find]
-include = ["nimbench*"]
+[tool.hatch.version]
+path = "nimbench/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["nimbench"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "RUF"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unused_configs = true
+files = ["nimbench"]

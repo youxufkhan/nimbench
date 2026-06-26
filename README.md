@@ -1,10 +1,6 @@
-# <p align="center"><pre align="center"><b><font color="#2ecc71">
-  _   _ ___ __  __ ____  _____ _   _  ____ _   _ 
- | \ | |_ _|  \/  | __ )| ____| \ | |/ ___| | | |
- |  \| || || |\/| |  _ \|  _| |  \| | |   | |_| |
- | |\  || || |  | | |_) | |___| |\  | |___|  _  |
- |_| \_|___|_|  |_|____/|_____|_| \_|\____|_| |_|
-</font></b></pre></p>
+<p align="center">
+  <img src="nimbench/cli.png" alt="nimbench cli" width="500">
+</p>
 
 <p align="center">
   <b>A lightweight, high-performance benchmarking tool for NVIDIA NIM LLMs.</b><br>
@@ -15,14 +11,15 @@
 
 ## 🚀 Overview
 
-`nimbench` is a surgical CLI tool designed to benchmark NVIDIA NIM (NVIDIA Inference Microservices) chat models. It handles the heavy lifting of model discovery, intelligent filtering, and robust benchmarking, providing you with a clear, color-coded performance report.
+`nimbench` is a surgical CLI tool designed to benchmark NVIDIA NIM (NVIDIA Inference Microservices) chat models. Powered by `httpx` for connection-pooled requests and `rich` for beautiful terminal presentation, it handles model discovery, intelligent filtering, and robust benchmarking, providing you with a clean, formatted performance report.
 
 ## ✨ Key Features
 
 - **🔍 Auto-Discovery**: Automatically finds and ranks all available models from your NVIDIA NIM endpoint.
 - **📊 Precise Metrics**: Measures Median, Min, Max latency and Tokens Per Second (TPS).
-- **⏱️ Progress & ETA**: Real-time progress tracking with percentage and estimated time remaining.
-- **🌈 Colorized CLI**: Beautiful, high-signal terminal output using green/yellow/red status indicators.
+- **⏱️ Progress & ETA**: Live interactive progress bar with percentage and estimated time remaining.
+- **🌈 Rich Terminal UI**: Beautiful, color-coded status tables and highlights using `rich`.
+- **🔌 Connection Pooling**: Uses `httpx` to reuse TCP connections, minimizing handshake overhead for accurate latency comparisons.
 - **🛡️ Intelligent Retries**: Automatically handles rate limits (429) by respecting `Retry-After` headers and applies temperature fallbacks when needed.
 - **📝 Failure Analysis**: Detailed breakdown of failure reasons (Not Provisioned, Timeout, Unsupported, etc.).
 - **💾 Skip Cache**: Remembers failed models to speed up subsequent runs.
